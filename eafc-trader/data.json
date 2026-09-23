@@ -1,0 +1,101 @@
+{
+  "updated_at": "2026-09-23T23:20:00+01:00",
+  "updated_at_display": "23 Sep 23:20",
+  "source": "FUTBIN primary; FUT.GG cross-check",
+  "holdings": [
+    {
+      "name": "Mariona Caldentey",
+      "rating": 89,
+      "quantity": 1,
+      "buy_price": 106000,
+      "current_price": 108000,
+      "target_sell": 116000,
+      "buy_score": 75,
+      "roi_confidence": 58,
+      "signal": "HOLD",
+      "note": "1 copy · break-even ~111.6k"
+    },
+    {
+      "name": "Reece James",
+      "rating": 84,
+      "quantity": 7,
+      "buy_price": 2300,
+      "current_price": 2600,
+      "target_sell": 2700,
+      "buy_score": 78,
+      "roi_confidence": 72,
+      "signal": "HOLD",
+      "note": "7 copies · total cost 16.1k"
+    }
+  ],
+  "signals": [
+    {
+      "name": "Reece James",
+      "rating": 84,
+      "current_price": 2600,
+      "max_buy": 2400,
+      "target_sell": 2700,
+      "buy_score": 52,
+      "roi_confidence": 72,
+      "signal": "WATCH",
+      "note": "Only buy more at 2.3–2.4k"
+    },
+    {
+      "name": "Mariona Caldentey",
+      "rating": 89,
+      "current_price": 108000,
+      "max_buy": 107000,
+      "target_sell": 116000,
+      "buy_score": 58,
+      "roi_confidence": 58,
+      "signal": "WATCH",
+      "note": "Holding already; no chase above max buy"
+    }
+  ],
+  "watchlist": [
+    {
+      "name": "Harry Kane",
+      "rating": 90,
+      "current_price": 26500,
+      "max_buy": 26900,
+      "target_sell": 29200,
+      "buy_score": 73,
+      "roi_confidence": 62,
+      "signal": "WATCH",
+      "note": "Higher-rated gold watch"
+    },
+    {
+      "name": "Lionel Messi",
+      "rating": 89,
+      "current_price": 51000,
+      "max_buy": 57300,
+      "target_sell": 62200,
+      "buy_score": 71,
+      "roi_confidence": 54,
+      "signal": "WATCH",
+      "note": "Falling trend; wait for stabilization"
+    },
+    {
+      "name": "Khvicha Kvaratskhelia",
+      "rating": 89,
+      "current_price": 222000,
+      "max_buy": 220700,
+      "target_sell": 239200,
+      "buy_score": 56,
+      "roi_confidence": 49,
+      "signal": "WATCH",
+      "note": "Do not catch falling knife"
+    },
+    {
+      "name": "Caroline Graham Hansen",
+      "rating": 89,
+      "current_price": 532000,
+      "max_buy": 528700,
+      "target_sell": 573300,
+      "buy_score": 56,
+      "roi_confidence": 51,
+      "signal": "WATCH",
+      "note": "High capital requirement"
+    }
+  ]
+}
