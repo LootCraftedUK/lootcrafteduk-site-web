@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0f14">
+<link rel="manifest" href="./manifest.webmanifest">
+<title>EAFC Trader</title>
+<style>
+:root{--bg:#0b0f14;--panel:#121923;--panel2:#182231;--text:#eef3f8;--muted:#91a0b2;--line:#263244;--buy:#35d07f;--sell:#ff6b6b;--watch:#f0c75e;--accent:#75a7ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:760px;margin:auto;padding:16px 14px 30px}
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+h1{font-size:1.45rem;margin:0}.muted{color:var(--muted);font-size:.82rem;line-height:1.4}
+.status{font-size:.72rem;padding:5px 8px;border-radius:999px;background:#17202b;border:1px solid var(--line);white-space:nowrap}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+button{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:11px;border-radius:10px;font-weight:700}
+button.active{border-color:var(--accent);background:#1c2a3b}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.kpi,.card{background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.kpi{padding:10px}.kpi b{display:block;font-size:1.1rem}.kpi span{font-size:.7rem;color:var(--muted)}
+.card{padding:13px;margin:9px 0}.row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.name{font-weight:800}.small{font-size:.76rem;color:var(--muted)}
+.badge{font-size:.73rem;font-weight:900;padding:5px 8px;border-radius:999px;white-space:nowrap}
+.BUY{background:rgba(53,208,127,.15);color:var(--buy)}.SELL{background:rgba(255,107,107,.15);color:var(--sell)}.WATCH,.HOLD{background:rgba(240,199,94,.15);color:var(--watch)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.cell{background:var(--panel2);padding:8px;border-radius:8px}.lab{font-size:.66rem;text-transform:uppercase;color:var(--muted)}.val{font-weight:800;margin-top:2px}
+.notice{padding:10px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:.8rem;margin:10px 0}
+footer{margin-top:16px;color:var(--muted);font-size:.72rem;line-height:1.45}
+@media(max-width:420px){.summary{grid-template-columns:1fr 1fr}.summary .kpi:last-child{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div><h1>EAFC 27 Trader</h1><div class="muted">ChatGPT-linked market dashboard</div></div>
+  <div id="sync" class="status">Loading…</div>
+</header>
+<div class="tabs">
+  <button data-tab="signals" class="active">Signals</button>
+  <button data-tab="holdings">Holdings</button>
+  <button data-tab="watchlist">Watchlist</button>
+</div>
+<div class="summary">
+  <div class="kpi"><b id="buyCount">0</b><span>BUY NOW</span></div>
+  <div class="kpi"><b id="sellCount">0</b><span>SELL NOW</span></div>
+  <div class="kpi"><b id="invested">0</b><span>Coins invested</span></div>
+</div>
+<div id="content"></div>
+<div class="notice">The app displays the latest market snapshot written by the ChatGPT hourly watcher. Prices are informational and can move before you trade. EA's 5% tax is included in ROI calculations.</div>
+<button id="refresh">Refresh now</button>
+<footer>Signals are model estimates, not guaranteed returns. No automated buying or selling is performed.</footer>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+let data=null,tab='signals';
+const fmt=n=>n==null?'—':Math.round(n).toLocaleString('en-GB');
+const pct=n=>n==null?'—':(n>=0?'+':'')+Number(n).toFixed(1)+'%';
+function roi(buy,sell){if(!buy||!sell)return null;return ((sell*.95-buy)/buy)*100}
+function badge(s){s=(s||'WATCH').toUpperCase();return '<span class="badge '+s+'">'+s+'</span>'}
+function card(p,type){
+ const buy=p.buy_price??p.max_buy??null, target=p.target_sell??null, cur=p.current_price??null;
+ const r=roi(buy,target);
+ return '<section class="card"><div class="row"><div><div class="name">'+p.name+'</div><div class="small">'+(p.rating? p.rating+' OVR · ':'')+(p.note||'')+'</div></div>'+badge(p.signal)+'</div>'+
+ '<div class="grid">'+
+ '<div class="cell"><div class="lab">Current</div><div class="val">'+fmt(cur)+'</div></div>'+
+ '<div class="cell"><div class="lab">'+(type==='holding'?'Buy price':'Max buy')+'</div><div class="val">'+fmt(buy)+'</div></div>'+
+ '<div class="cell"><div class="lab">Target sell</div><div class="val">'+fmt(target)+'</div></div>'+
+ '<div class="cell"><div class="lab">ROI @ target</div><div class="val">'+pct(r)+'</div></div>'+
+ '<div class="cell"><div class="lab">Buy score</div><div class="val">'+(p.buy_score==null?'—':p.buy_score+'%')+'</div></div>'+
+ '<div class="cell"><div class="lab">ROI confidence</div><div class="val">'+(p.roi_confidence==null?'—':p.roi_confidence+'%')+'</div></div>'+
+ '</div></section>';
+}
+function render(){
+ if(!data)return;
+ const holdings=data.holdings||[], signals=data.signals||[], watch=data.watchlist||[];
+ $('#buyCount').textContent=signals.filter(x=>(x.signal||'').toUpperCase()==='BUY').length;
+ $('#sellCount').textContent=[...signals,...holdings].filter(x=>(x.signal||'').toUpperCase()==='SELL').length;
+ $('#invested').textContent=fmt(holdings.reduce((a,x)=>a+(x.buy_price||0)*(x.quantity||1),0));
+ let arr=tab==='holdings'?holdings:(tab==='watchlist'?watch:signals);
+ $('#content').innerHTML=arr.length?arr.map(x=>card(x,tab==='holdings'?'holding':'signal')).join(''):'<div class="notice">No '+tab+' to show right now.</div>';
+ document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+}
+async function load(){
+ $('#sync').textContent='Syncing…';
+ try{
+  const r=await fetch('./data.json?t='+Date.now(),{cache:'no-store'});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  data=await r.json();
+  $('#sync').textContent='Updated '+(data.updated_at_display||data.updated_at||'');
+  render();
+ }catch(e){$('#sync').textContent='Sync failed';}
+}
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;render()}));
+$('#refresh').addEventListener('click',load);
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+load(); setInterval(load,60000);
+</script>
+</body>
+</html>
